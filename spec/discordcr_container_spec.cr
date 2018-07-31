@@ -1,6 +1,9 @@
 require "./spec_helper"
 require "../examples/container"
 
+# Our container class is reopened to execute the `included` macro hook again,
+# so that the annotation is applied to change the client type to our own
+# `MockClient`
 @[Discord::Container::Options(client_class: MockClient)]
 class Container
   include Discord::Container
