@@ -14,6 +14,10 @@ module Discord
     annotation Options
     end
 
+    EVENTS = {
+      ::Discord::Message => "on_message_create"
+    }
+
     macro included
       {% ann = @type.annotation(::Discord::Container::Options) %}
       {% if ann && ann[:client_class] %}
@@ -28,7 +32,9 @@ module Discord
           {% for method in @type.methods %}
             {% ann = method.annotation(::Discord::Handler) %}
             {% if ann %}
-              client.{{ann[:event]}} do |payload|
+              {% handler_method = EVENTS[ann[:payload]] %}
+              {% raise "Unknown event type: #{ann[:payload]}" if handler_method.is_a?(NilLiteral) %}
+              client.{{handler_method.id}} do |payload|
                 {{method.name}}(payload)
               end
             {% end %}
