@@ -1,13 +1,13 @@
 class Container
   include Discord::Container
 
-  @[Discord::Handler(payload: ::Discord::Message)]
+  @[Discord::Handler(event: :message_create)]
   def ping(payload)
     return unless payload.content == "!ping"
     client.create_message(payload.channel_id, "pong")
   end
 
-  @[Discord::Handler(payload: ::Discord::Message)]
+  @[Discord::Handler(event: :message_create)]
   def add(payload)
     input = payload.content
     return unless input.starts_with?("!add")

@@ -18,15 +18,20 @@ module Discord
   # helper methods for your handler.
   #
   # ```
-  # module MyHandlers
+  # class MyHandlers
   #  include Discord::Container
   #
-  #  @[Discord::Handler(payload: ::Discord::Message)
+  #  def intialize(@prefix : String)
+  #  end
+  #
+  #  @[Discord::Handler(event: :message_create)
   #  def ping(payload)
-  #    return unless payload.content == "!ping"
+  #    return unless payload.content == "#{@prefix}ping"
   #    client.create_message(payload.channel_id, "pong!")
   #  end
   # end
+  #
+  # client.register MyHandlers.new(prefix: "!")
   # ```
   #
   # `client` will reference the `Client` instance the container was registered
@@ -37,8 +42,41 @@ module Discord
     annotation Options
     end
 
+    class_getter containers = [] of Container
+
+    # :nodoc:
     EVENTS = {
-      ::Discord::Message => "on_message_create",
+      :dispatch,
+      :ready,
+      :resumed,
+      :channel_create,
+      :channel_update,
+      :channel_delete,
+      :channel_pins_update,
+      :guild_create,
+      :guild_update,
+      :guild_delete,
+      :guild_ban_add,
+      :guild_ban_remove,
+      :guild_emoji_update,
+      :guild_integrations_update,
+      :guild_member_remove,
+      :guild_members_chunk,
+      :guild_role_create,
+      :guild_role_update,
+      :guild_role_delete,
+      :message_create,
+      :message_reaction_add,
+      :message_reaction_remove,
+      :message_reaction_remove_all,
+      :message_update,
+      :message_delete,
+      :message_delete_bulk,
+      :presence_update,
+      :typing_start,
+      :voice_state_update,
+      :voice_server_update,
+      :webhooks_update,
     }
 
     macro included
@@ -49,6 +87,8 @@ module Discord
         getter! client : ::Discord::Client
       {% end %}
 
+      ::Discord::Container.containers << self.new
+
       # Registers this containers handlers onto the given `client`
       def register_on(client)
         @client = client
@@ -56,9 +96,9 @@ module Discord
           {% for method in @type.methods %}
             {% ann = method.annotation(::Discord::Handler) %}
             {% if ann %}
-              {% handler_method = EVENTS[ann[:payload]] %}
-              {% raise "Unknown event type: #{ann[:payload]}" if handler_method.is_a?(NilLiteral) %}
-              client.{{handler_method.id}} do |payload|
+              {% handler_method = ann[:event] %}
+              {% raise "Unknown event type: #{handler_method}" unless EVENTS.includes?(handler_method) %}
+              client.on_{{handler_method.id}} do |payload|
                 {{method.name}}(payload)
               end
             {% end %}
