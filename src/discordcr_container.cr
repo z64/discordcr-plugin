@@ -24,14 +24,16 @@ module Discord
 
       def register_on(client)
         @client = client
-        \{% for method in @type.methods %}
-          \{% ann = method.annotation(::Discord::Handler) %}
-          \{% if ann %}
-             client.\{{ann[:event]}} do |payload|
-               \{{method.name}}(payload)
-             end
-          \{% end %}
-        \{% end %}
+        {% verbatim do %}
+          {% for method in @type.methods %}
+            {% ann = method.annotation(::Discord::Handler) %}
+            {% if ann %}
+              client.{{ann[:event]}} do |payload|
+                {{method.name}}(payload)
+              end
+            {% end %}
+          {% end %}
+        {% end %}
       end
     end
   end
