@@ -1,4 +1,5 @@
 require "discordcr"
+require "discordcr-middleware"
 
 module Discord
   annotation Handler
@@ -98,10 +99,18 @@ module Discord
             {% ann = method.annotation(::Discord::Handler) %}
             {% if ann %}
               {% handler_method = ann[:event] %}
+              {% middleware_list = ann[:middleware] %}
               {% raise "Unknown event type: #{handler_method}" unless EVENTS.includes?(handler_method) %}
-              client.on_{{handler_method.id}} do |payload|
-                {{method.name}}(payload)
-              end
+
+              {% if middleware_list.is_a?(NilLiteral) %}
+                client.on_{{handler_method.id}} do |payload|
+                  {{method.name}}(payload)
+                end
+              {% else %}
+                client.on_{{handler_method.id}}({{middleware_list}}) do |payload, ctx|
+                  {{method.name}}(payload, ctx)
+                end
+              {% end %}
             {% end %}
           {% end %}
         {% end %}

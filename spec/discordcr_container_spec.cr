@@ -15,8 +15,8 @@ describe Container do
 
   describe "ping" do
     it "responds with pong" do
-      container.ping(Message.new(1, "foo")).should eq nil
-      container.ping(Message.new(1, "!ping")).should eq({1, "pong"})
+      container.ping(Message.new(1, "foo"), nil).should eq nil
+      container.ping(Message.new(1, "!ping"), nil).should eq({1, "pong"})
     end
   end
 

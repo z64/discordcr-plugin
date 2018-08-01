@@ -1,8 +1,17 @@
+class PrefixMiddleware
+  def initialize(@prefix : String)
+  end
+
+  def call(payload, ctx)
+    yield if payload.content.starts_with?(@prefix)
+  end
+end
+
 class Container
   include Discord::Container
 
-  @[Discord::Handler(event: :message_create)]
-  def ping(payload)
+  @[Discord::Handler(event: :message_create, middleware: PrefixMiddleware.new("!"))]
+  def ping(payload, ctx)
     return unless payload.content == "!ping"
     client.create_message(payload.channel_id, "pong")
   end
