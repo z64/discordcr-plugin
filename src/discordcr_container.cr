@@ -42,6 +42,7 @@ module Discord
     annotation Options
     end
 
+    # Reference to containers defined across the application
     class_getter containers = [] of Container
 
     # :nodoc:
