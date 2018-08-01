@@ -2,7 +2,7 @@ require "spec"
 require "../src/discordcr_container"
 
 # A mock Discord message
-record Message, channel_id : Int32, content : String
+record Message, id : Int32, channel_id : Int32, content : String
 
 # A mock Discord channel
 record ChannelStub, id : Int32, name : String
@@ -24,7 +24,11 @@ class MockClient
   def on_channel_create(&block : ChannelStub ->)
   end
 
-  def create_message(id : Int32, content : String)
-    {id, content}
+  def create_message(channel_id : Int32, content : String)
+    Message.new(2, channel_id, content)
+  end
+
+  def edit_message(channel_id, message_id, content)
+    Message.new(message_id, channel_id, content)
   end
 end

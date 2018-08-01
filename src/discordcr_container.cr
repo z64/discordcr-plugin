@@ -1,3 +1,4 @@
+require "yaml"
 require "discordcr"
 require "discordcr-middleware"
 
@@ -80,6 +81,18 @@ module Discord
       :voice_server_update,
       :webhooks_update,
     }
+
+    # Callback to be overidden in subclasses for JSON configuration
+    # of a container
+    def configure(parser : JSON::PullParser)
+      parser.skip
+    end
+
+    # Callback to be overidden in subclasses for YAML configuration
+    # of a container
+    def configure(parser : YAML::PullParser)
+      parser.skip
+    end
 
     macro included
       {% ann = @type.annotation(::Discord::Container::Options) %}
