@@ -21,6 +21,8 @@ dependencies:
 # events for every event handler in this plugin
 @[Discord::Plugin::Options(middleware: {Prefix.new("!"), ChannelFilter.new(123)})]
 class MyCommands
+  include Discord::Plugin
+
   # Create a message_create handler method
   @[Discord::Handler(event: :message_create)]
   def do_something(payload, ctx)
