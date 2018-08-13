@@ -1,5 +1,5 @@
 require "spec"
-require "../src/discordcr_container"
+require "../src/discordcr-plugin"
 
 # A mock Discord message
 record Message, id : Int32, channel_id : Int32, content : String
@@ -11,8 +11,8 @@ record ChannelStub, id : Int32, name : String
 class MockClient
   getter logger : Logger? = Logger.new(STDOUT)
 
-  def register(container : Discord::Container)
-    container.register_on(self)
+  def register(plugin : Discord::Plugin)
+    plugin.register_on(self)
   end
 
   def on_message_create(&block : Message ->)

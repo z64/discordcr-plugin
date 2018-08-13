@@ -7,22 +7,22 @@ module Discord
   end
 
   class Client
-    def register(container : Container)
-      container.register_on(self)
+    def register(plugin : Plugin)
+      plugin.register_on(self)
     end
   end
 
   # Represents a collection of event handlers bound to methods that can
-  # be registered onto a client instance. Containers are defined by
-  # `include Container`, and then using the `Discord::Handler` annotation
+  # be registered onto a client instance. Plugins are defined by
+  # `include Plugin`, and then using the `Discord::Handler` annotation
   # to assign an event handler to that method. Any method that does not
   # have this annotation is ignored, so that you can build private
   # helper methods for your handler.
   #
   # ```
-  # @[Discord::Container::Options(middleware: {Prefix.new("!"), ChannelFilter.new(1234)})]
+  # @[Discord::Plugin::Options(middleware: {Prefix.new("!"), ChannelFilter.new(1234)})]
   # class MyHandlers
-  #  include Discord::Container
+  #  include Discord::Plugin
   #
   #  def intialize(@prefix : String)
   #  end
@@ -37,20 +37,20 @@ module Discord
   # client.register MyHandlers.new(prefix: "!")
   # ```
   #
-  # `client` will reference the `Client` instance the container was registered
+  # `client` will reference the `Client` instance the plugin was registered
   # onto. It can also be replaced by any other class using the
-  # `@[Container::Options(client_class: MyClient)]` annotation. This is useful
+  # `@[Plugin::Options(client_class: MyClient)]` annotation. This is useful
   # for replacing it for a mock client for use in specs.
   #
-  # `@[Container::Options(middleware: some_middleware)` can also be used to
+  # `@[Plugin::Options(middleware: some_middleware)` can also be used to
   # supply a single middleware, or a tuple of middleware (a chain) that will
-  # be applied to every event handler in the container.
-  module Container
+  # be applied to every event handler in the plugin.
+  module Plugin
     annotation Options
     end
 
-    # Reference to containers defined across the application
-    class_getter containers = [] of Container
+    # Reference to plugins defined across the application
+    class_getter plugins = [] of Plugin
 
     # :nodoc:
     EVENTS = {
@@ -88,28 +88,28 @@ module Discord
     }
 
     # Callback to be overidden in subclasses for JSON configuration
-    # of a container
+    # of a plugin
     def configure(parser : JSON::PullParser)
       parser.skip
     end
 
     # Callback to be overidden in subclasses for YAML configuration
-    # of a container
+    # of a plugin
     def configure(parser : YAML::PullParser)
       parser.skip
     end
 
     macro included
-      {% class_ann = @type.annotation(::Discord::Container::Options) %}
+      {% class_ann = @type.annotation(::Discord::Plugin::Options) %}
       {% if class_ann && class_ann[:client_class] %}
         getter! client : {{class_ann[:client_class]}}
       {% else %}
         getter! client : ::Discord::Client
       {% end %}
 
-      ::Discord::Container.containers << self.new
+      ::Discord::Plugin.plugins << self.new
 
-      # Registers this containers handlers onto the given `client`
+      # Registers this plugins handlers onto the given `client`
       def register_on(client)
         @client = client
         \{% for method in @type.methods %}

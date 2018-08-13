@@ -1,4 +1,4 @@
-# discordcr_container
+# discordcr-plugin
 
 TODO: Write a description here
 
@@ -8,8 +8,8 @@ Add this to your application's `shard.yml`:
 
 ```yaml
 dependencies:
-  discordcr_container:
-    github: z64/discordcr_container
+  discordcr-plugin:
+    github: z64/discordcr-plugin
 ```
 
 ## Usage
@@ -17,9 +17,9 @@ dependencies:
 ```crystal
 # my_commands.cr
 
-# Describe a container with two middleware that will filter incoming
-# events for every event handler in this container
-@[Discord::Container::Options(middleware: {Prefix.new("!"), ChannelFilter.new(123)})]
+# Describe a plugin with two middleware that will filter incoming
+# events for every event handler in this plugin
+@[Discord::Plugin::Options(middleware: {Prefix.new("!"), ChannelFilter.new(123)})]
 class MyCommands
   # Create a message_create handler method
   @[Discord::Handler(event: :message_create)]
@@ -58,19 +58,19 @@ end
 
 # main.cr
 
-require "discordcr_container"
+require "discordcr-plugin"
 require "./my_commands"
 
 # Make a client (or many!)
 client = Discord::Client.new(token: ENV["TOKEN"])
 
-# Configure all containers based on their class name:
+# Configure all plugins based on their class name:
 File.open("config.json", "r") do |file|
   parser = JSON::PullParser.new(file)
   parser.read_object do |key|
-    Discord::Container.containers.each do |container|
-      if container.class.to_s.underscore == key
-        container.configure(parser)
+    Discord::Plugin.plugins.each do |plugin|
+      if plugin.class.to_s.underscore == key
+        plugin.configure(parser)
       else
         parser.skip
       end
@@ -78,9 +78,9 @@ File.open("config.json", "r") do |file|
   end
 end
 
-# Register all containers defined across the codebase:
-Discord::Container.containers.each do |container|
-  client.register(container)
+# Register all plugins defined across the codebase:
+Discord::Plugin.plugins.each do |plugin|
+  client.register(plugin)
 end
 
 # Let's go!

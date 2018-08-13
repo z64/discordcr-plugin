@@ -1,5 +1,5 @@
 {
-  "container": {
+  "my_plugin": {
     "show_response_time": true
   }
 }

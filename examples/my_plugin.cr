@@ -16,9 +16,9 @@ class ChannelFilter
   end
 end
 
-@[Discord::Container::Options(middleware: {PrefixMiddleware.new("!"), ChannelFilter.new(123)})]
-class Container
-  include Discord::Container
+@[Discord::Plugin::Options(middleware: {PrefixMiddleware.new("!"), ChannelFilter.new(123)})]
+class MyPlugin
+  include Discord::Plugin
 
   record Config, show_response_time : Bool do
     include JSON::Serializable
