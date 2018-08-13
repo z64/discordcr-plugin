@@ -20,6 +20,7 @@ module Discord
   # helper methods for your handler.
   #
   # ```
+  # @[Discord::Container::Options(middleware: {Prefix.new("!"), ChannelFilter.new(1234)})]
   # class MyHandlers
   #  include Discord::Container
   #
@@ -40,6 +41,10 @@ module Discord
   # onto. It can also be replaced by any other class using the
   # `@[Container::Options(client_class: MyClient)]` annotation. This is useful
   # for replacing it for a mock client for use in specs.
+  #
+  # `@[Container::Options(middleware: some_middleware)` can also be used to
+  # supply a single middleware, or a tuple of middleware (a chain) that will
+  # be applied to every event handler in the container.
   module Container
     annotation Options
     end
@@ -95,9 +100,9 @@ module Discord
     end
 
     macro included
-      {% ann = @type.annotation(::Discord::Container::Options) %}
-      {% if ann && ann[:client_class] %}
-        getter! client : {{ann[:client_class]}}
+      {% class_ann = @type.annotation(::Discord::Container::Options) %}
+      {% if class_ann && class_ann[:client_class] %}
+        getter! client : {{class_ann[:client_class]}}
       {% else %}
         getter! client : ::Discord::Client
       {% end %}
@@ -107,26 +112,30 @@ module Discord
       # Registers this containers handlers onto the given `client`
       def register_on(client)
         @client = client
-        {% verbatim do %}
-          {% for method in @type.methods %}
-            {% ann = method.annotation(::Discord::Handler) %}
-            {% if ann %}
-              {% handler_method = ann[:event] %}
-              {% middleware_list = ann[:middleware] %}
-              {% raise "Unknown event type: #{handler_method}" unless EVENTS.includes?(handler_method) %}
+        \{% for method in @type.methods %}
+          \{% ann = method.annotation(::Discord::Handler) %}
+          \{% if ann %}
+            \{% handler_method = ann[:event] %}
+            \{% raise "Unknown event type: #{handler_method}" unless EVENTS.includes?(handler_method) %}
 
-              {% if middleware_list.is_a?(NilLiteral) %}
-                client.on_{{handler_method.id}} do |payload|
-                  {{method.name}}(payload)
+            {% middleware_list = class_ann[:middleware] %}
+            {% if middleware_list.is_a?(NilLiteral) %}
+              client.on_\{{handler_method.id}} do |payload|
+                \{{method.name}}(payload)
+              end
+            {% else %}
+              {% if middleware_list.is_a?(TupleLiteral) %}
+                client.on_\{{handler_method.id}}({{middleware_list.join(",").id}}) do |payload, ctx|
+                  \{{method.name}}(payload, ctx)
                 end
               {% else %}
-                client.on_{{handler_method.id}}({{middleware_list}}) do |payload, ctx|
-                  {{method.name}}(payload, ctx)
+                client.on_\{{handler_method.id}}({{middleware_list}}) do |payload, ctx|
+                  \{{method.name}}(payload, ctx)
                 end
               {% end %}
             {% end %}
-          {% end %}
-        {% end %}
+          \{% end %}
+        \{% end %}
       end
     end
   end

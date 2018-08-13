@@ -7,6 +7,16 @@ class PrefixMiddleware
   end
 end
 
+class ChannelFilter
+  def initialize(@id : UInt64)
+  end
+
+  def call(payload, ctx)
+    yield if payload.channel_id == @id
+  end
+end
+
+@[Discord::Container::Options(middleware: {PrefixMiddleware.new("!"), ChannelFilter.new(123)})]
 class Container
   include Discord::Container
 
@@ -21,7 +31,7 @@ class Container
     @config = Config.new(parser)
   end
 
-  @[Discord::Handler(event: :message_create, middleware: PrefixMiddleware.new("!"))]
+  @[Discord::Handler(event: :message_create)]
   def ping(payload, ctx)
     return unless payload.content == "!ping"
 
@@ -40,7 +50,7 @@ class Container
   end
 
   @[Discord::Handler(event: :message_create)]
-  def add(payload)
+  def add(payload, ctx)
     input = payload.content
     return unless input.starts_with?("!add")
     numbers = parse_numbers(input[4..-1])

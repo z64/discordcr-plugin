@@ -4,7 +4,7 @@ require "../examples/container"
 # Our container class is reopened to execute the `included` macro hook again,
 # so that the annotation is applied to change the client type to our own
 # `MockClient`
-@[Discord::Container::Options(client_class: MockClient)]
+@[Discord::Container::Options(client_class: MockClient, middleware: PrefixMiddleware.new("!"))]
 class Container
   include Discord::Container
 end
@@ -36,9 +36,9 @@ describe Container do
 
   describe "add" do
     it "adds two numbers" do
-      container.add(Message.new(1, 1, "!add 2 3")).should eq(Message.new(2, 1, "5"))
-      container.add(Message.new(1, 1, "!add")).should eq(Message.new(2, 1, "0"))
-      container.add(Message.new(1, 1, "!add a 3")).should eq(Message.new(2, 1, "Invalid numbers"))
+      container.add(Message.new(1, 1, "!add 2 3"), nil).should eq(Message.new(2, 1, "5"))
+      container.add(Message.new(1, 1, "!add"), nil).should eq(Message.new(2, 1, "0"))
+      container.add(Message.new(1, 1, "!add a 3"), nil).should eq(Message.new(2, 1, "Invalid numbers"))
     end
   end
 end
