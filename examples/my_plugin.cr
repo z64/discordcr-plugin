@@ -16,6 +16,10 @@ class ChannelFilter
   end
 end
 
+class SimplePlugin
+  include Discord::Plugin
+end
+
 @[Discord::Plugin::Options(middleware: {PrefixMiddleware.new("!"), ChannelFilter.new(123)})]
 class MyPlugin
   include Discord::Plugin

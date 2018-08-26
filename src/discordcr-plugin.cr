@@ -95,20 +95,22 @@ module Discord
             \{% handler_method = ann[:event] %}
             \{% raise "Unknown event type: #{handler_method}" unless EVENTS.includes?(handler_method) %}
 
-            {% middleware_list = class_ann[:middleware] %}
-            {% if middleware_list.is_a?(NilLiteral) %}
-              client.on_\{{handler_method.id}} do |payload|
-                \{{method.name}}(payload)
-              end
-            {% else %}
-              {% if middleware_list.is_a?(TupleLiteral) %}
-                client.on_\{{handler_method.id}}({{middleware_list.join(",").id}}) do |payload, ctx|
-                  \{{method.name}}(payload, ctx)
+            {% if class_ann %}
+              {% middleware_list = class_ann[:middleware] %}
+              {% if middleware_list.is_a?(NilLiteral) %}
+                client.on_\{{handler_method.id}} do |payload|
+                  \{{method.name}}(payload)
                 end
               {% else %}
-                client.on_\{{handler_method.id}}({{middleware_list}}) do |payload, ctx|
-                  \{{method.name}}(payload, ctx)
-                end
+                {% if middleware_list.is_a?(TupleLiteral) %}
+                  client.on_\{{handler_method.id}}({{middleware_list.join(",").id}}) do |payload, ctx|
+                    \{{method.name}}(payload, ctx)
+                  end
+                {% else %}
+                  client.on_\{{handler_method.id}}({{middleware_list}}) do |payload, ctx|
+                    \{{method.name}}(payload, ctx)
+                  end
+                {% end %}
               {% end %}
             {% end %}
           \{% end %}
