@@ -20,7 +20,7 @@ class SimplePlugin
   include Discord::Plugin
 end
 
-@[Discord::Plugin::Options(middleware: {PrefixMiddleware.new("!"), ChannelFilter.new(123)})]
+@[Discord::Plugin::Options(middleware: ChannelFilter.new(id: 246283902652645376))]
 class MyPlugin
   include Discord::Plugin
 
@@ -53,10 +53,9 @@ class MyPlugin
     message
   end
 
-  @[Discord::Handler(event: :message_create)]
+  @[Discord::Handler(event: :message_create, middleware: PrefixMiddleware.new("?add"))]
   def add(payload, ctx)
     input = payload.content
-    return unless input.starts_with?("!add")
     numbers = parse_numbers(input[4..-1])
     client.create_message(payload.channel_id, numbers.sum.to_s)
   rescue ArgumentError

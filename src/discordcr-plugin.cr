@@ -27,7 +27,7 @@ module Discord
   #  def intialize(@prefix : String)
   #  end
   #
-  #  @[Discord::Handler(event: :message_create)
+  #  @[Discord::Handler(middleware: RateLimit.new(3.seconds), event: :message_create)
   #  def ping(payload)
   #    return unless payload.content == "#{@prefix}ping"
   #    client.create_message(payload.channel_id, "pong!")
@@ -45,6 +45,10 @@ module Discord
   # `@[Plugin::Options(middleware: some_middleware)` can also be used to
   # supply a single middleware, or a tuple of middleware (a chain) that will
   # be applied to every event handler in the plugin.
+  #
+  # `@[Discord::Plugin]` can also accept `middleware` that will apply *only*
+  # to that event handler. It will be concatenated at the end of any class
+  # level middleware defined with `@[Plugin::Options]`.
   module Plugin
     annotation Options
     end
@@ -95,24 +99,37 @@ module Discord
             \{% handler_method = ann[:event] %}
             \{% raise "Unknown event type: #{handler_method}" unless EVENTS.includes?(handler_method) %}
 
-            {% if class_ann %}
-              {% middleware_list = class_ann[:middleware] %}
-              {% if middleware_list.is_a?(NilLiteral) %}
-                client.on_\{{handler_method.id}} do |payload|
-                  \{{method.name}}(payload)
-                end
-              {% else %}
-                {% if middleware_list.is_a?(TupleLiteral) %}
-                  client.on_\{{handler_method.id}}({{middleware_list.join(",").id}}) do |payload, ctx|
-                    \{{method.name}}(payload, ctx)
-                  end
-                {% else %}
-                  client.on_\{{handler_method.id}}({{middleware_list}}) do |payload, ctx|
-                    \{{method.name}}(payload, ctx)
-                  end
-                {% end %}
-              {% end %}
-            {% end %}
+            \{% middleware = [] of ASTNode %}
+
+            # Append class level middleware
+            \{% class_ann = @type.annotation(::Discord::Plugin::Options) %}
+            \{% if class_ann && class_ann[:middleware] %}
+              \{% if class_ann[:middleware].is_a?(TupleLiteral) %}
+                \{% middleware = middleware + class_ann[:middleware] %}
+              \{% else %}
+                 \{% middleware << class_ann[:middleware] %}
+              \{% end %}
+            \{% end %}
+
+            # Append handler level middleware
+            \{% if ann[:middleware] %}
+              \{% if class_ann[:middleware].is_a?(TupleLiteral) %}
+                \{% middleware = middleware + ann[:middleware] %}
+              \{% else %}
+                 \{% middleware << ann[:middleware] %}
+              \{% end %}
+            \{% end %}
+
+            # Construct regular event handler if list is empty, or middleware handler otherwise
+            \{% if middleware.empty? %}
+              client.on_\{{handler_method.id}} do |payload|
+                \{{method.name}}(payload)
+              end
+            \{% else %}
+              client.on_\{{handler_method.id}}(\{{middleware.join(",").id}}) do |payload, ctx|
+                \{{method.name}}(payload, ctx)
+              end
+            \{% end %}
           \{% end %}
         \{% end %}
       end

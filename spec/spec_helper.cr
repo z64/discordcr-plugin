@@ -18,7 +18,7 @@ class MockClient
   def on_message_create(&block : Message ->)
   end
 
-  def on_message_create(middleware, &block : Message ->)
+  def on_message_create(*middleware, &block : Message ->)
   end
 
   def on_channel_create(&block : ChannelStub ->)
