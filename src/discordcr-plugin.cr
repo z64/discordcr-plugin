@@ -53,8 +53,11 @@ module Discord
     annotation Options
     end
 
-    # Reference to plugins defined across the application
+    # Reference to plugins defined across the application, for iterating across
     class_getter plugins = [] of Plugin
+
+    # Type safe access to specific plugins across the application
+    class_getter plugin_instances = Discord::Context.new
 
     # :nodoc:
     EVENTS = {
@@ -88,7 +91,9 @@ module Discord
         getter! client : ::Discord::Client
       {% end %}
 
-      ::Discord::Plugin.plugins << self.new
+      instance = self.new
+      ::Discord::Plugin.plugins << instance
+      ::Discord::Plugin.plugin_instances.put(instance)
 
       # Registers this plugins handlers onto the given `client`
       def register_on(client)

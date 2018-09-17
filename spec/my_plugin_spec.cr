@@ -1,5 +1,4 @@
 require "./spec_helper"
-require "../examples/my_plugin"
 
 # Our plugin class is reopened to execute the `included` macro hook again,
 # so that the annotation is applied to change the client type to our own

@@ -1,5 +1,6 @@
 require "spec"
 require "../src/discordcr-plugin"
+require "../examples/my_plugin"
 
 # A mock Discord message
 record Message, id : Int32, channel_id : Int32, content : String
