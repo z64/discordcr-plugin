@@ -46,7 +46,7 @@ module Discord
   # supply a single middleware, or a tuple of middleware (a chain) that will
   # be applied to every event handler in the plugin.
   #
-  # `@[Discord::Plugin]` can also accept `middleware` that will apply *only*
+  # `@[Discord::Handler]` can also accept `middleware` that will apply *only*
   # to that event handler. It will be concatenated at the end of any class
   # level middleware defined with `@[Plugin::Options]`.
   module Plugin
