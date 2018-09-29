@@ -118,10 +118,12 @@ module Discord
 
             # Append handler level middleware
             \{% if ann[:middleware] %}
-              \{% if class_ann[:middleware].is_a?(TupleLiteral) %}
-                \{% middleware = middleware + ann[:middleware] %}
-              \{% else %}
+               \{% if ann[:middleware].is_a?(Call) %}
                  \{% middleware << ann[:middleware] %}
+              \{% else %}
+                 \{% for handler_mw in ann[:middleware] %}
+                   \{% middleware << handler_mw %}
+                 \{% end %}
               \{% end %}
             \{% end %}
 
