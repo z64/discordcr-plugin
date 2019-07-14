@@ -1,6 +1,5 @@
 require "yaml"
 require "discordcr"
-require "discordcr-middleware"
 
 module Discord
   annotation Handler

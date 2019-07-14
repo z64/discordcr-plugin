@@ -4,7 +4,7 @@ version: 0.1.0
 authors:
   - Zac Nowicki <zachnowicki@gmail.com>
 
-crystal: 0.25.1
+crystal: 0.29.0
 
 license: MIT
 
@@ -12,10 +12,7 @@ targets:
   example:
     main: examples/main.cr
 
-dependencies:
+development_dependencies:
   discordcr:
-    github: meew0/discordcr
-    branch: master
-  discordcr-middleware:
-    github: z64/discordcr-middleware
+    github: z64/discordcr
     branch: master
